@@ -22,10 +22,7 @@ HttpClient (Orchestrator, implements ClientInterface)
   Transport (Request → Response):
     CurlTransport              (default)
     Retry wraps CurlTransport  (maxRetries > 0)
-
-sendRequest(): foreach transformer → $request = $transform($request) → return $transport($request, $config)
 ```
-All handlers in `Handler/` are invokable (`__invoke()`). HttpClient has zero business logic.
 
 ## API / SIGNATURES
 ```php
