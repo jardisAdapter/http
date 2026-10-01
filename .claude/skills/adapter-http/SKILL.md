@@ -4,7 +4,7 @@ description: PSR-18 HTTP client, cURL transport, handler pipeline, retry. Use fo
 user-invocable: false
 zone: post-active
 persona: C
-prerequisites: [rules-architecture, rules-patterns]
+prerequisites: [foundation-architecture, foundation-patterns]
 next: []
 ---
 
