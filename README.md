@@ -223,7 +223,7 @@ $client = new HttpClient(
 
 ## Jardis Kernel Integration
 
-`jardiscore/foundation` is deleted, including its `HttpClientHandler` and the `ServiceRegistry` it registered into. The successor lives in `jardiscore/kernel`: `JardisCore\Kernel\Bootstrap\Handler\BuildHttpClientFromEnv`, packed by the Bootstrap-Packer `Bootstrap\BuildDomainKernelFromEnv`.
+`jardiscore/kernel` provides `JardisCore\Kernel\Bootstrap\Handler\BuildHttpClientFromEnv`, packed by the Bootstrap-Packer `Bootstrap\BuildDomainKernelFromEnv`.
 
 In a Jardis DDD project, the client is automatically configured via ENV:
 
@@ -237,7 +237,7 @@ HTTP_MAX_RETRIES=3
 HTTP_RETRY_DELAY_MS=200
 ```
 
-Your domain code receives the client via the Koffer accessor `$kernel->httpClient(): ?ClientInterface` — without ever importing `HttpClient` directly. The return value is either the instance or `null` — a third state does not exist, since the accessor is typed `?ClientInterface`. `null` means: the adapter is not installed.
+Your domain code receives the client via the accessor `$kernel->httpClient(): ?ClientInterface` — without ever importing `HttpClient` directly. The return value is either the instance or `null` — a third state does not exist, since the accessor is typed `?ClientInterface`. `null` means: the adapter is not installed.
 
 ---
 
