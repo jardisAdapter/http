@@ -6,6 +6,7 @@ PSR-18 HTTP client on cURL with handler pipeline (Transformers + Transport) and 
 
 - **User API:** `new HttpClient(requestFactory, streamFactory, responseFactory, uriFactory, config)`. `ClientConfig` is a readonly VO, `HttpClient` has zero business logic — only Pipeline orchestration.
 - **Convenience methods set JSON automatically:** `post()`/`put()`/`patch()` serialize arrays to JSON and set `Content-Type` + `Accept`. `get()`/`delete()`/`head()` have no body. Optional last parameter is custom headers per request.
+- **Kernel service contract:** `HttpClient` implements `JardisSupport\Contract\Http\HttpServiceInterface` (`jardissupport/contracts ^2.19`) with `get/delete/head/post/put/patch`; domain code reaches it via `$kernel->http()`. Signatures of these six calls must stay contract-compatible.
 - **Pipeline is built from Config, only what is configured is instantiated:** Transformers (`BaseUrl`, `DefaultHeaders`, `BearerAuth`, `BasicAuth`) → Transport (`CurlTransport`, wrapped by `Retry` if `maxRetries > 0`). Bearer takes precedence over Basic.
 - **No Exception on 4xx/5xx** — those are valid responses. Only `NetworkException` (DNS, Connect-Refused, Timeout) and `RequestException` (malformed URI) are thrown, both extend `HttpClientException`. The Retry wrapper retries 5xx + `HttpClientException` with exponential backoff (`retryDelayMs`).
 - **Custom Transport injectable via Closure:** `transport: function (RequestInterface, ClientConfig): ResponseInterface`. Enables mocks without real HTTP calls — all Unit Tests in the package use this path.
