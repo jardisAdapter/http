@@ -12,6 +12,7 @@ use JardisAdapter\Http\Handler\BearerAuth;
 use JardisAdapter\Http\Handler\CurlTransport;
 use JardisAdapter\Http\Handler\DefaultHeaders;
 use JardisAdapter\Http\Handler\Retry;
+use JardisSupport\Contract\Http\HttpServiceInterface;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
@@ -22,8 +23,11 @@ use Psr\Http\Message\UriFactoryInterface;
 
 /**
  * PSR-18 HTTP client — orchestrates handler pipeline from config.
+ *
+ * Also fulfils the kernel HTTP service contract ({@see HttpServiceInterface}) with its
+ * convenience calls get/delete/head/post/put/patch.
  */
-final class HttpClient implements ClientInterface
+final class HttpClient implements ClientInterface, HttpServiceInterface
 {
     /** @var list<Closure(RequestInterface): RequestInterface> */
     private readonly array $transformers;
