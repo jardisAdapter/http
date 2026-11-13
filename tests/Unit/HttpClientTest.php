@@ -8,6 +8,7 @@ use JardisAdapter\Http\Config\ClientConfig;
 use JardisAdapter\Http\HttpClient;
 use JardisAdapter\Http\Message\Psr17Factory;
 use JardisAdapter\Http\Message\Response;
+use JardisSupport\Contract\Http\HttpServiceInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\RequestInterface;
 
@@ -337,6 +338,112 @@ final class HttpClientTest extends TestCase
 
         $this->assertSame('https://api.example.com/users', (string) $capturedRequest->getUri());
         $this->assertSame('Bearer token', $capturedRequest->getHeaderLine('Authorization'));
+    }
+
+    public function testGetViaHttpServiceContract(): void
+    {
+        $captured = null;
+        $service = $this->createService($captured, 200);
+
+        $response = $service->get('https://example.com/items', ['X-Trace' => 'abc']);
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertSame('GET', $captured->getMethod());
+        $this->assertSame('https://example.com/items', (string) $captured->getUri());
+        $this->assertSame('abc', $captured->getHeaderLine('X-Trace'));
+    }
+
+    public function testDeleteViaHttpServiceContract(): void
+    {
+        $captured = null;
+        $service = $this->createService($captured, 204);
+
+        $response = $service->delete('https://example.com/items/1', ['X-Trace' => 'abc']);
+
+        $this->assertSame(204, $response->getStatusCode());
+        $this->assertSame('DELETE', $captured->getMethod());
+        $this->assertSame('https://example.com/items/1', (string) $captured->getUri());
+        $this->assertSame('abc', $captured->getHeaderLine('X-Trace'));
+    }
+
+    public function testHeadViaHttpServiceContract(): void
+    {
+        $captured = null;
+        $service = $this->createService($captured, 200);
+
+        $service->head('https://example.com/items', ['X-Trace' => 'abc']);
+
+        $this->assertSame('HEAD', $captured->getMethod());
+        $this->assertSame('https://example.com/items', (string) $captured->getUri());
+        $this->assertSame('abc', $captured->getHeaderLine('X-Trace'));
+    }
+
+    public function testPostViaHttpServiceContract(): void
+    {
+        $captured = null;
+        $service = $this->createService($captured, 201);
+
+        $response = $service->post('https://example.com/items', ['name' => 'a', 'n' => 1], ['X-Trace' => 'abc']);
+
+        $this->assertSame(201, $response->getStatusCode());
+        $this->assertJsonRequest($captured, 'POST', 'https://example.com/items', ['name' => 'a', 'n' => 1]);
+    }
+
+    public function testPutViaHttpServiceContract(): void
+    {
+        $captured = null;
+        $service = $this->createService($captured, 200);
+
+        $service->put('https://example.com/items/1', ['name' => 'b'], ['X-Trace' => 'abc']);
+
+        $this->assertJsonRequest($captured, 'PUT', 'https://example.com/items/1', ['name' => 'b']);
+    }
+
+    public function testPatchViaHttpServiceContract(): void
+    {
+        $captured = null;
+        $service = $this->createService($captured, 200);
+
+        $service->patch('https://example.com/items/1', ['name' => 'c'], ['X-Trace' => 'abc']);
+
+        $this->assertJsonRequest($captured, 'PATCH', 'https://example.com/items/1', ['name' => 'c']);
+    }
+
+    public function testErrorStatusComesBackAsResponseViaHttpServiceContract(): void
+    {
+        foreach ([404, 500] as $status) {
+            $captured = null;
+            $service = $this->createService($captured, $status);
+
+            $this->assertSame($status, $service->get('https://example.com/x')->getStatusCode());
+            $this->assertSame($status, $service->post('https://example.com/x', ['a' => 1])->getStatusCode());
+        }
+    }
+
+    private function createService(?RequestInterface &$captured, int $status): HttpServiceInterface
+    {
+        $transport = function (RequestInterface $request) use (&$captured, $status) {
+            $captured = $request;
+            return new Response($status);
+        };
+
+        return $this->createClient(transport: $transport(...));
+    }
+
+    /**
+     * @param array<string, mixed> $expectedBody
+     */
+    private function assertJsonRequest(
+        RequestInterface $request,
+        string $method,
+        string $uri,
+        array $expectedBody,
+    ): void {
+        $this->assertSame($method, $request->getMethod());
+        $this->assertSame($uri, (string) $request->getUri());
+        $this->assertSame('abc', $request->getHeaderLine('X-Trace'));
+        $this->assertSame('application/json', $request->getHeaderLine('Content-Type'));
+        $this->assertSame($expectedBody, json_decode((string) $request->getBody(), true));
     }
 
     private function createClient(

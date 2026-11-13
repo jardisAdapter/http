@@ -221,6 +221,14 @@ $client = new HttpClient(
 
 ---
 
+## Kernel service contract (since 1.1)
+
+`HttpClient` fulfils `JardisSupport\Contract\Http\HttpServiceInterface` (`jardissupport/contracts` ^2.19) with its existing convenience calls `get`, `delete`, `head`, `post`, `put` and `patch`. Bodies of `post`/`put`/`patch` are JSON. A 4xx/5xx status comes back as a response; only a failed transport throws a PSR-18 `ClientExceptionInterface`.
+
+Domain code uses the service through the kernel accessor `$kernel->http()` and imports only the contract and PSR-7 — never `HttpClient`. Any other body form stays with the PSR-18 client (`$kernel->httpClient()`).
+
+---
+
 ## Jardis Kernel Integration
 
 `jardiscore/kernel` provides `JardisCore\Kernel\Bootstrap\Handler\BuildHttpClientFromEnv`, packed by the Bootstrap-Packer `Bootstrap\BuildDomainKernelFromEnv`.
